@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض أسعار - مكاني والرمز العقارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #0b1c3f; /* لون كحلي مشابه للوجو */
+            --gold-color: #c59b5f; /* لون ذهبي */
+            --bg-color: #fdfdfd;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* زر التحميل */
+        .download-btn-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .download-btn:hover {
+            background-color: #152b5c;
+            transform: translateY(-2px);
+        }
+
+        /* حاوية المستند التي سيتم طباعتها */
+        #document-content {
+            background-color: white;
+            max-width: 210mm; /* عرض ورقة A4 */
+            margin: 0 auto;
+            padding: 20mm 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+
+        /* الهيدر */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header-side {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-side.en {
+            text-align: left;
+            direction: ltr;
+        }
+
+        .header-side.ar {
+            text-align: right;
+        }
+
+        .header-side h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-side p {
+            margin: 0;
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .header-logo img {
+            height: 70px;
+            max-width: 150px;
+            object-fit: contain;
+        }
+
+        /* عنوان الشراكة */
+        .partnership-title {
+            text-align: center;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+        
+        .partnership-title h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 22px;
+        }
+
+        /* الجدول */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0.5cm;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .product-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .price-silver {
+            font-weight: bold;
+            color: #6c757d;
+        }
+
+        .price-gold {
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* الختم */
+        .footer-stamp {
+            margin-top: 0.5cm;
+            text-align: left; /* الختم على اليسار */
+        }
+
+        .footer-stamp img {
+            width: 140px;
+            height: auto;
+            opacity: 0.9;
+        }
+
+        /* إعدادات الطباعة وتحميل الـ PDF */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .download-btn-container {
+                display: none;
+            }
+            #document-content {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            table {
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            thead {
+                display: table-header-group;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="download-btn-container">
+        <button class="download-btn" onclick="downloadPDF()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            تحميل المستند (PDF)
+        </button>
+    </div>
+
+    <div id="document-content">
+        
+        <header>
+            <div class="header-side en">
+                <h2>Makani</h2>
+                <p>C.R: 1010460174</p>
+            </div>
+            <div class="header-logo">
+                <img src="logo1.png" alt="شعار مكاني">
+            </div>
+            <div class="header-side ar">
+                <h2>مكاني</h2>
+                <p>س.ت: 1010460174</p>
+            </div>
+        </header>
+
+        <div class="partnership-title">
+            <h3>من مكاني إلى شركة الرمز العقارية</h3>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>رقم المنتج</th>
+                    <th>صورة المنتج</th>
+                    <th>السعر الفضي (ريال)</th>
+                    <th>السعر الذهبي (ريال)</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                </tbody>
+        </table>
+
+        <div class="footer-stamp">
+            <img src="logo2.png" alt="ختم الاعتماد">
+        </div>
+
+    </div>
+
+    <script>
+        // بيانات الأسعار الفضية
+        const silverPrices = {
+            1: 149, 2: 149, 3: 199, 4: 199, 5: 225, 6: 225, 7: 249, 8: 229, 9: 215, 10: 225,
+            11: 149, 12: 225, 13: 225, 14: 126, 15: 166, 16: 235, 17: 199, 18: 218, 19: 299, 20: 299,
+            21: 344, 22: 344, 23: 344, 24: 344, 25: 288, 26: 259, 27: 219, 28: 288, 29: 219, 30: 259,
+            31: 249, 33: 219, 34: 219, 35: 299, 36: 219, 37: 219, 38: 219, 39: 288, 40: 199, 41: 199, 
+            42: 199, 43: 199, 44: 249, 46: 299, 47: 288, 48: 288, 49: 288, 50: 288, 51: 288
+        };
+
+        const tableBody = document.getElementById('table-body');
+
+        // بناء الجدول من 1 إلى 51
+        for (let i = 1; i <= 51; i++) {
+            // تخطي الأرقام الغير موجودة
+            if (i === 32 || i === 45) continue;
+
+            const silverPrice = silverPrices[i];
+            const goldPrice = silverPrice + 19; // زيادة 19 للسعر الذهبي
+            
+            // تحديد امتداد الصورة (الاغلب webp و 13 بصيغة jpg حسب المرفق)
+            // استخدام fallback في حال اختلاف الصيغ
+            let imgSrc = `design-${i}.webp`;
+            if (i === 13) {
+                imgSrc = `design-13.jpg`;
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${i}</strong></td>
+                <td>
+                    <img src="${imgSrc}" class="product-img" alt="منتج ${i}" 
+                         onerror="this.onerror=null; this.src='design-${i}.jpg';">
+                </td>
+                <td class="price-silver">${silverPrice}</td>
+                <td class="price-gold">${goldPrice}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        // دالة تحويل المستند إلى PDF عند الضغط على الزر
+        function downloadPDF() {
+            const element = document.getElementById('document-content');
+            
+            // إعدادات مكتبة html2pdf
+            const opt = {
+                margin:       [10, 10, 10, 10], // هوامش الصفحة
+                filename:     'عرض_أسعار_مكاني_والرمز_العقارية.pdf',
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true }, // scale:2 لزيادة دقة الجدول والصور
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // تغيير نص الزر أثناء التحميل
+            const btn = document.querySelector('.download-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'جاري التجهيز والتحميل...';
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = originalText;
+            });
+        }
+    </script>
+</body>
+</html>
