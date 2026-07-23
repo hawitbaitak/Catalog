@@ -107,7 +107,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            display: none; /* تظهر فقط في التاب المخصص */
+            display: none;
         }
         
         .tools-row {
@@ -162,7 +162,7 @@
             padding: 20mm 15mm;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             border-radius: 4px;
-            display: none; /* يظهر التاب النشط فقط */
+            display: none;
             box-sizing: border-box;
         }
 
@@ -212,6 +212,10 @@
             text-align: center;
             vertical-align: middle;
         }
+        
+        tr {
+            page-break-inside: avoid; /* منع انقسام صفوف الجدول */
+        }
 
         th {
             background-color: var(--primary-color);
@@ -238,7 +242,7 @@
         .footer-stamp {
             margin-top: 1cm;
             text-align: left;
-            page-break-inside: avoid;
+            page-break-inside: avoid; /* منع انقسام الختم */
         }
         .footer-stamp img {
             width: 140px;
@@ -260,7 +264,7 @@
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; page-break-after: auto; }
             thead { display: table-header-group; }
-            .remove-col { display: none; } /* إخفاء عمود الحذف عند الطباعة */
+            .remove-col { display: none; }
         }
     </style>
 </head>
@@ -301,7 +305,6 @@
                         <option value="أسود">أسود (+19 ريال)</option>
                     </select>
                 </div>
-                <!-- خيار التصميم الخاص الجديد -->
                 <div class="form-group" style="flex: 1.2; padding-bottom: 8px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--primary-color); height: 100%;">
                         <input type="checkbox" id="customDesign" style="width: 18px; height: 18px; cursor: pointer;">
@@ -439,12 +442,11 @@
         validIds.forEach(i => {
             const silverPrice = silverPrices[i];
             const goldPrice = silverPrice + 19;
-            const blackPrice = silverPrice + 19; // اللون الأسود +19 أيضاً
+            const blackPrice = silverPrice + 19;
 
             let imgSrc = `design-${i}.webp`;
             if (i === 13) imgSrc = `design-13.jpg`;
 
-            // إضافة للكتالوج
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${i}</strong></td>
@@ -458,7 +460,6 @@
             `;
             catalogBody.appendChild(row);
 
-            // إضافة لقائمة اختيار الفاتورة
             const option = document.createElement('option');
             option.value = i;
             option.text = `لوحة رقم ${i} (أساسي: ${silverPrice} ريال)`;
@@ -499,7 +500,6 @@
                 unitPrice += 19;
             }
 
-            // إضافة سعر التصميم الخاص وتحديث النص في الفاتورة
             if (hasCustomDesign) {
                 unitPrice += 50;
                 displayDetails += '<br><small style="color:var(--gold-color); font-weight:bold;">(+ تصميم خاص)</small>';
@@ -508,7 +508,6 @@
             invoiceItems.push({ id, details: displayDetails, qty, unitPrice, total: unitPrice * qty });
             renderInvoice();
 
-            // إفراغ الـ Checkbox بعد الإضافة لتسهيل إضافة عنصر جديد بدون تصميم خاص بالغلط
             document.getElementById('customDesign').checked = false;
         }
 
@@ -575,8 +574,9 @@
                 margin:       [10, 10, 10, 10],
                 filename:     `عرض_أسعار_${docType}_${companyName}.pdf`,
                 image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 }, // حل مشكلة المساحة البيضاء في الأعلى
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] } // حل مشكلة انقسام الجدول والختم
             };
 
             const btn = document.getElementById('dlBtn');
