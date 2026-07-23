@@ -3,35 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عرض أسعار - هوية بيتك والرمز العقارية</title>
+    <title>منظومة عروض الأسعار - هوية بيتك</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         :root {
-            --primary-color: #0b1c3f; /* لون كحلي مشابه للوجو */
-            --gold-color: #c59b5f; /* لون ذهبي */
-            --bg-color: #fdfdfd;
+            --primary-color: #0b1c3f;
+            --gold-color: #c59b5f;
+            --black-color: #222222;
+            --bg-color: #f4f6f9;
         }
 
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f4f6f9;
+            background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* زر التحميل */
+        /* ----- لوحة التحكم (لا تظهر في الطباعة) ----- */
+        .dashboard {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary-color);
+        }
+
+        .dashboard h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: #777;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* أدوات الفاتورة المخصصة */
+        .custom-invoice-tools {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none; /* تظهر فقط في التاب المخصص */
+        }
+        
+        .tools-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .add-btn {
+            background: var(--gold-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+        }
+
         .download-btn-container {
             text-align: center;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
+
         .download-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 30px;
             font-size: 16px;
             font-family: 'Cairo', sans-serif;
             font-weight: 600;
@@ -39,23 +145,29 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .download-btn:hover {
-            background-color: #152b5c;
-            transform: translateY(-2px);
         }
 
-        /* حاوية المستند التي سيتم طباعتها */
-        #document-content {
+        /* ----- المستند الورقي ----- */
+        .document-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .doc-page {
             background-color: white;
-            max-width: 210mm; /* عرض ورقة A4 */
-            margin: 0 auto;
+            width: 210mm;
+            min-height: 297mm;
             padding: 20mm 15mm;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
             border-radius: 4px;
+            display: none; /* يظهر التاب النشط فقط */
+            box-sizing: border-box;
+        }
+
+        .doc-page.active {
+            display: block;
         }
 
         /* الهيدر */
@@ -68,58 +180,26 @@
             margin-bottom: 25px;
         }
 
-        .header-side {
-            display: flex;
-            flex-direction: column;
-        }
+        .header-side { display: flex; flex-direction: column; }
+        .header-side.en { text-align: left; direction: ltr; }
+        .header-side.ar { text-align: right; }
+        .header-side h2 { margin: 0; color: var(--primary-color); font-size: 24px; font-weight: 700; }
+        .header-side p { margin: 0; color: #555; font-size: 14px; font-weight: 600; }
+        .header-logo img { height: 70px; max-width: 150px; object-fit: contain; }
 
-        .header-side.en {
-            text-align: left;
-            direction: ltr;
-        }
-
-        .header-side.ar {
-            text-align: right;
-        }
-
-        .header-side h2 {
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .header-side p {
-            margin: 0;
-            color: #555;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .header-logo img {
-            height: 70px;
-            max-width: 150px;
-            object-fit: contain;
-        }
-
-        /* عنوان الشراكة */
+        /* العناوين */
         .partnership-title {
             text-align: center;
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
         }
-        
-        .partnership-title h3 {
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 22px;
-        }
+        .partnership-title h3 { margin: 0; color: var(--primary-color); font-size: 22px; }
+        .partnership-title p { margin: 5px 0 0 0; color: #666; font-weight: bold; font-size: 14px; display: none; }
 
-        /* الجدول */
+        /* الجداول */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -137,122 +217,201 @@
             background-color: var(--primary-color);
             color: white;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
         }
 
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
+        tr:nth-child(even) { background-color: #f8f9fa; }
 
         .product-img {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             object-fit: cover;
             border-radius: 6px;
             border: 1px solid #eee;
         }
 
-        .price-silver {
-            font-weight: bold;
-            color: #6c757d;
-        }
+        .price-silver { font-weight: bold; color: #6c757d; }
+        .price-gold { font-weight: bold; color: #b8860b; }
+        .price-black { font-weight: bold; color: #222; }
 
-        .price-gold {
-            font-weight: bold;
-            color: #b8860b;
-        }
-
-        /* الختم */
+        /* الفوتر والختم */
         .footer-stamp {
-            margin-top: 0.5cm;
-            text-align: left; /* الختم على اليسار */
+            margin-top: 1cm;
+            text-align: left;
+            page-break-inside: avoid;
         }
-
         .footer-stamp img {
             width: 140px;
             height: auto;
             opacity: 0.9;
         }
 
-        /* إعدادات الطباعة وتحميل الـ PDF */
+        /* زر حذف من الفاتورة */
+        .remove-btn {
+            background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: 'Cairo';
+        }
+
+        /* إعدادات الطباعة */
         @media print {
-            body {
-                background-color: white;
-                padding: 0;
-            }
-            .download-btn-container {
-                display: none;
-            }
-            #document-content {
-                box-shadow: none;
-                max-width: 100%;
-                padding: 0;
-                margin: 0;
-            }
-            table {
-                page-break-inside: auto;
-            }
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
-            thead {
-                display: table-header-group;
-            }
+            body { background-color: white; padding: 0; margin: 0; }
+            .dashboard, .no-print { display: none !important; }
+            .document-wrapper { margin: 0; }
+            .doc-page { box-shadow: none; width: 100%; padding: 0; min-height: auto; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            .remove-col { display: none; } /* إخفاء عمود الحذف عند الطباعة */
         }
     </style>
 </head>
 <body>
 
-    <div class="download-btn-container">
-        <button class="download-btn" onclick="downloadPDF()">
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            تحميل المستند (PDF)
-        </button>
-    </div>
-
-    <div id="document-content">
+    <!-- لوحة التحكم -->
+    <div class="dashboard no-print">
+        <h2>إعداد عروض الأسعار - هوية بيتك</h2>
         
-        <header>
-            <div class="header-side en">
-                <h2>homeidentity
-</h2>
-                <p>C.R: 1010460174</p>
+        <div class="settings-grid">
+            <div class="form-group">
+                <label>اسم المؤسسة / الشركة الموجه لها العرض:</label>
+                <input type="text" id="companyInput" value="شركة الرمز العقارية" onkeyup="updateDocInfo()">
             </div>
-            <div class="header-logo">
-                <img src="logo1.png" alt="شعار هوية بيتك">
+            <div class="form-group">
+                <label>الرقم أو السجل الضريبي للعميل (اختياري):</label>
+                <input type="text" id="taxInput" placeholder="مثال: 300123456789" onkeyup="updateDocInfo()">
             </div>
-            <div class="header-side ar">
-                <h2>هوية بيتك</h2>
-                <p>س.ت: 1010460174</p>
-            </div>
-        </header>
-
-        <div class="partnership-title">
-            <h3>من هوية بيتك إلى شركة الرمز العقارية</h3>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>رقم المنتج</th>
-                    <th>صورة المنتج</th>
-                    <th>السعر الفضي (ريال)</th>
-                    <th>السعر الذهبي (ريال)</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('catalog')">الكتالوج الشامل (الكل)</button>
+            <button class="tab-btn" onclick="switchTab('custom')">عرض سعر مخصص (فاتورة)</button>
+        </div>
 
-        <div class="footer-stamp">
-            <img src="logo2.png" alt="ختم الاعتماد">
+        <!-- أدوات الفاتورة المخصصة -->
+        <div class="custom-invoice-tools" id="customTools">
+            <div class="tools-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>اختر المنتج (رقم اللوحة):</label>
+                    <select id="prodId"></select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>لون اللوحة (يحدد السعر):</label>
+                    <select id="prodColor">
+                        <option value="فضي">فضي (الأساسي)</option>
+                        <option value="ذهبي">ذهبي (+19 ريال)</option>
+                        <option value="أسود">أسود (+19 ريال)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="width: 100px;">
+                    <label>الكمية:</label>
+                    <input type="number" id="prodQty" value="1" min="1">
+                </div>
+                <button class="add-btn" onclick="addInvoiceItem()">+ إضافة للفاتورة</button>
+            </div>
+        </div>
+
+        <div class="download-btn-container">
+            <button class="download-btn" id="dlBtn" onclick="downloadPDF()">تحميل المستند المعروض (PDF)</button>
+        </div>
+    </div>
+
+    <!-- حاوية المستندات -->
+    <div class="document-wrapper">
+        
+        <!-- 1. مستند الكتالوج الشامل -->
+        <div id="catalog-doc" class="doc-page active">
+            <header>
+                <div class="header-side en">
+                    <h2>homeidentity</h2>
+                    <p>C.R: 1010460174</p>
+                </div>
+                <div class="header-logo">
+                    <img src="logo1.png" alt="شعار هوية بيتك">
+                </div>
+                <div class="header-side ar">
+                    <h2>هوية بيتك</h2>
+                    <p>س.ت: 1010460174</p>
+                </div>
+            </header>
+
+            <div class="partnership-title">
+                <h3>من هوية بيتك إلى <span class="client-name-display">شركة الرمز العقارية</span></h3>
+                <p class="client-tax-display"></p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>الرقم</th>
+                        <th>صورة المنتج</th>
+                        <th>سعر فضي</th>
+                        <th>سعر ذهبي</th>
+                        <th>سعر أسود</th>
+                    </tr>
+                </thead>
+                <tbody id="catalog-body"></tbody>
+            </table>
+
+            <div class="footer-stamp">
+                <img src="logo2.png" alt="ختم الاعتماد">
+            </div>
+        </div>
+
+        <!-- 2. مستند عرض السعر المخصص (الفاتورة) -->
+        <div id="custom-doc" class="doc-page">
+            <header>
+                <div class="header-side en">
+                    <h2>homeidentity</h2>
+                    <p>C.R: 1010460174</p>
+                </div>
+                <div class="header-logo">
+                    <img src="logo1.png" alt="شعار هوية بيتك">
+                </div>
+                <div class="header-side ar">
+                    <h2>هوية بيتك</h2>
+                    <p>س.ت: 1010460174</p>
+                </div>
+            </header>
+
+            <div class="partnership-title">
+                <h3>عرض سعر مقدم إلى: <span class="client-name-display">شركة الرمز العقارية</span></h3>
+                <p class="client-tax-display"></p>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>م</th>
+                        <th>المنتج</th>
+                        <th>الصورة</th>
+                        <th>اللون</th>
+                        <th>الكمية</th>
+                        <th>سعر الوحدة</th>
+                        <th>الإجمالي</th>
+                        <th class="remove-col no-print">إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-body">
+                    <!-- سيتم إضافة المنتجات هنا -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" style="text-align: left; font-weight: bold; font-size: 18px;">المجموع الكلي:</td>
+                        <td colspan="2" style="font-weight: bold; font-size: 18px; color: var(--primary-color);">
+                            <span id="invoice-total">0</span> ريال
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="footer-stamp">
+                <img src="logo2.png" alt="ختم الاعتماد">
+            </div>
         </div>
 
     </div>
 
     <script>
-        // بيانات الأسعار الفضية
+        // بيانات الأسعار الأساسية
         const silverPrices = {
             1: 149, 2: 149, 3: 199, 4: 199, 5: 225, 6: 225, 7: 249, 8: 229, 9: 215, 10: 225,
             11: 149, 12: 225, 13: 225, 14: 126, 15: 166, 16: 235, 17: 199, 18: 218, 19: 299, 20: 299,
@@ -261,23 +420,24 @@
             42: 199, 43: 199, 44: 249, 46: 299, 47: 288, 48: 288, 49: 288, 50: 288, 51: 288
         };
 
-        const tableBody = document.getElementById('table-body');
-
-        // بناء الجدول من 1 إلى 51
+        const validIds = [];
         for (let i = 1; i <= 51; i++) {
-            // تخطي الأرقام الغير موجودة
-            if (i === 32 || i === 45) continue;
+            if (i !== 32 && i !== 45) validIds.push(i);
+        }
 
+        // --- 1. بناء الكتالوج الشامل ---
+        const catalogBody = document.getElementById('catalog-body');
+        const prodSelect = document.getElementById('prodId');
+
+        validIds.forEach(i => {
             const silverPrice = silverPrices[i];
-            const goldPrice = silverPrice + 19; // زيادة 19 للسعر الذهبي
-            
-            // تحديد امتداد الصورة (الاغلب webp و 13 بصيغة jpg حسب المرفق)
-            // استخدام fallback في حال اختلاف الصيغ
-            let imgSrc = `design-${i}.webp`;
-            if (i === 13) {
-                imgSrc = `design-13.jpg`;
-            }
+            const goldPrice = silverPrice + 19;
+            const blackPrice = silverPrice + 19; // اللون الأسود +19 أيضاً
 
+            let imgSrc = `design-${i}.webp`;
+            if (i === 13) imgSrc = `design-13.jpg`;
+
+            // إضافة للكتالوج
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${i}</strong></td>
@@ -287,29 +447,124 @@
                 </td>
                 <td class="price-silver">${silverPrice}</td>
                 <td class="price-gold">${goldPrice}</td>
+                <td class="price-black">${blackPrice}</td>
             `;
-            tableBody.appendChild(row);
+            catalogBody.appendChild(row);
+
+            // إضافة لقائمة اختيار الفاتورة
+            const option = document.createElement('option');
+            option.value = i;
+            option.text = `لوحة رقم ${i} (أساسي: ${silverPrice} ريال)`;
+            prodSelect.appendChild(option);
+        });
+
+        // --- 2. تحديث بيانات العميل ---
+        function updateDocInfo() {
+            const company = document.getElementById('companyInput').value || 'عميل محترم';
+            const tax = document.getElementById('taxInput').value;
+
+            document.querySelectorAll('.client-name-display').forEach(el => el.innerText = company);
+            
+            document.querySelectorAll('.client-tax-display').forEach(el => {
+                if(tax.trim() !== "") {
+                    el.style.display = 'block';
+                    el.innerText = `الرقم الضريبي: ${tax}`;
+                } else {
+                    el.style.display = 'none';
+                }
+            });
         }
 
-        // دالة تحويل المستند إلى PDF عند الضغط على الزر
+        // --- 3. نظام الفاتورة المخصصة ---
+        let invoiceItems = [];
+
+        function addInvoiceItem() {
+            const id = parseInt(document.getElementById('prodId').value);
+            const color = document.getElementById('prodColor').value;
+            const qty = parseInt(document.getElementById('prodQty').value);
+
+            const basePrice = silverPrices[id];
+            let unitPrice = basePrice;
+            if (color === 'ذهبي' || color === 'أسود') {
+                unitPrice += 19;
+            }
+
+            invoiceItems.push({ id, color, qty, unitPrice, total: unitPrice * qty });
+            renderInvoice();
+        }
+
+        function removeInvoiceItem(index) {
+            invoiceItems.splice(index, 1);
+            renderInvoice();
+        }
+
+        function renderInvoice() {
+            const tbody = document.getElementById('invoice-body');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+
+            invoiceItems.forEach((item, index) => {
+                let imgSrc = `design-${item.id}.webp`;
+                if (item.id === 13) imgSrc = `design-13.jpg`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>رقم ${item.id}</strong></td>
+                    <td>
+                        <img src="${imgSrc}" class="product-img" style="width:50px; height:50px;" 
+                             onerror="this.onerror=null; this.src='design-${item.id}.jpg';">
+                    </td>
+                    <td>${item.color}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.unitPrice}</td>
+                    <td style="font-weight:bold;">${item.total}</td>
+                    <td class="remove-col no-print">
+                        <button class="remove-btn" onclick="removeInvoiceItem(${index})">حذف</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                grandTotal += item.total;
+            });
+
+            document.getElementById('invoice-total').innerText = grandTotal;
+        }
+
+        // --- 4. التبديل بين الكتالوج والفاتورة ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.doc-page').forEach(doc => doc.classList.remove('active'));
+
+            if(tab === 'catalog') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('catalog-doc').classList.add('active');
+                document.getElementById('customTools').style.display = 'none';
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('custom-doc').classList.add('active');
+                document.getElementById('customTools').style.display = 'block';
+            }
+        }
+
+        // --- 5. استخراج الـ PDF ---
         function downloadPDF() {
-            const element = document.getElementById('document-content');
+            const activeDoc = document.querySelector('.doc-page.active');
+            const companyName = document.getElementById('companyInput').value || 'عميل';
+            const docType = activeDoc.id === 'catalog-doc' ? 'كتالوج_شامل' : 'عرض_سعر_مخصص';
             
-            // إعدادات مكتبة html2pdf
             const opt = {
-                margin:       [10, 10, 10, 10], // هوامش الصفحة
-                filename:     'عرض_أسعار_هوية بيتك_والرمز_العقارية.pdf',
+                margin:       [10, 10, 10, 10],
+                filename:     `عرض_أسعار_${docType}_${companyName}.pdf`,
                 image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true }, // scale:2 لزيادة دقة الجدول والصور
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // تغيير نص الزر أثناء التحميل
-            const btn = document.querySelector('.download-btn');
+            const btn = document.getElementById('dlBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = 'جاري التجهيز والتحميل...';
             
-            html2pdf().set(opt).from(element).save().then(() => {
+            html2pdf().set(opt).from(activeDoc).save().then(() => {
                 btn.innerHTML = originalText;
             });
         }
